@@ -109,7 +109,9 @@ lines.append(f"Round   {round_number}")
 lines.append("Pirate")
 
 for pirate in pirates:
-    lines.append(pirate)
+    name, odds = pirate.rsplit(" (", 1)
+    odds = odds.rstrip(")")
+    lines.append(f"{name}; {odds}")
 
 output = "\n".join(lines)
 
