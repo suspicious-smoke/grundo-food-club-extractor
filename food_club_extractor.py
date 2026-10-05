@@ -9,7 +9,7 @@ import subprocess
 
 
 URL = "https://grundos.cafe/games/foodclub/bet/"
-
+WINNER_BASE_URL = "https://grundos.cafe/games/foodclub/previous_round/?id="
 
 # --------------------------------------------------
 # Get logged-in Firefox cookies
@@ -56,7 +56,7 @@ round_number = int(match.group(1))
 
 
 # --------------------------------------------------
-# Find all five winner dropdowns
+# Find all five dropdowns
 # --------------------------------------------------
 pirates = []
 
@@ -113,13 +113,28 @@ for pirate in pirates:
     odds = odds.rstrip(")")
     lines.append(f"{name}; {odds}")
 
+
+
+
+
+# --------------------------------------------------
+# Download the previous round winners
+# --------------------------------------------------
+lines.append(f"Winners for {round_number-1}:")
+for i in range(1, 6):
+    response = session.get(f"{WINNER_BASE_URL}{i}")
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "html.parser")
+    winner_pirate = soup.select_one("#fc_table p.bold.nomargin").get_text(strip=True)
+    lines.append(winner_pirate)
+
+
+
 output = "\n".join(lines)
-
-
 # --------------------------------------------------
 # Save as a text file
 # --------------------------------------------------
-filename = Path("bet_files") / f"food_club_round_{round_number}.txt"
+filename = Path("bet_files") / f"food_club_bets.txt"
 filename.parent.mkdir(exist_ok=True)
 
 with open(filename, "w", encoding="utf-8") as f:
