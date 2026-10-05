@@ -106,16 +106,12 @@ for i in range(1, 6):
 lines = []
 
 lines.append(f"Round   {round_number}")
-lines.append("Pirate")
+lines.append("Pirate\tOdds")
 
 for pirate in pirates:
     name, odds = pirate.rsplit(" (", 1)
     odds = odds.rstrip(")")
-    lines.append(f"{name}; {odds}")
-
-
-
-
+    lines.append(f"{name}\t{odds}")
 
 # --------------------------------------------------
 # Download the previous round winners
