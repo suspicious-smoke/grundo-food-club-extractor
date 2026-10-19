@@ -1,11 +1,9 @@
 import requests
-import os
 from pathlib import Path
 import browser_cookie3
 from bs4 import BeautifulSoup
 from pathlib import Path
 import re
-import subprocess
 import gspread
 
 URL = "https://grundos.cafe/games/foodclub/bet/"
@@ -28,6 +26,8 @@ def duplicate_and_paste(spreadsheet, source_tab, new_tab, values, paste_cell="B1
     )
 
     paste_values(spreadsheet, new_tab, values, paste_cell)
+    paste_values(spreadsheet, new_tab, [[max_bet]], "Q26")
+    
     return new_sheet
 
 
@@ -79,6 +79,14 @@ match = re.search(
     r"It is currently\s+Round\s+(\d+)",
     page_text
 )
+
+max_bet_match = re.search(
+    r"You can only place up to\s+(\d+)",
+    page_text
+)
+
+max_bet = int(max_bet_match.group(1)) if max_bet_match else None
+
 
 if not match:
     raise RuntimeError(
@@ -181,7 +189,9 @@ paste_values(spreadsheet=spreadsheet,source_tab=f"{round_number-1}",values=winne
 # --------------------------------------------------
 # send discord message to my server
 # --------------------------------------------------
-WEBHOOK_URL = "" # fill this in
+webhook_path = Path(__file__).resolve().parent / ".." / "bot_server_fc_webhook.txt"
+WEBHOOK_URL = webhook_path.read_text().strip()
+
 url = f"{spreadsheet.url}#gid={new_sheet.id}"
 payload = {
     "content": f"Grundo's Food Club\n[Open Round {round_number} in Google Sheets]({url})"
