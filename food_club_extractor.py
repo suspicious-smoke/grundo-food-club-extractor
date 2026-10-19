@@ -146,12 +146,6 @@ for i in range(1, 6):
         pirates_list.append(
             [name,f"{odds}:1"]
         )
-
-# for pirate in pirates:
-#     name, odds = pirate.rsplit(" (", 1)
-#     odds = odds.rstrip(")")
-#     lines.append(f"{name}\t{odds}")
-
 # --------------------------------------------------
 # Download the previous round winners
 # --------------------------------------------------
@@ -205,15 +199,3 @@ if response.status_code == 204:
     print("Message sent successfully!")
 else:
     print(f"Failed to send message. Status code: {response.status_code}")
-
-
-# filename = Path("bet_files") / f"food_club_bets.txt"
-# filename.parent.mkdir(exist_ok=True)
-
-# with open(filename, "w", encoding="utf-8") as f:
-#     f.write(output)
-
-# print(f"Saved: {filename}")
-# print()
-# print(output)
-# subprocess.Popen(["notepad.exe", str(filename.resolve())])
