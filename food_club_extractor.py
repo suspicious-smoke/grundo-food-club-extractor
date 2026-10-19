@@ -177,9 +177,26 @@ paste_values(spreadsheet=spreadsheet,source_tab=f"{round_number-1}",values=winne
 
 
 
+
 # --------------------------------------------------
-# Save as a text file
+# send discord message to my server
 # --------------------------------------------------
+WEBHOOK_URL = "" # fill this in
+url = f"{spreadsheet.url}#gid={new_sheet.id}"
+payload = {
+    "content": f"Grundo's Food Club\n[Open Round {round_number} in Google Sheets]({url})"
+}
+
+# Send the POST request to Discord
+response = requests.post(WEBHOOK_URL, json=payload)
+
+# Discord webhooks return a 204 status code on success
+if response.status_code == 204:
+    print("Message sent successfully!")
+else:
+    print(f"Failed to send message. Status code: {response.status_code}")
+
+
 # filename = Path("bet_files") / f"food_club_bets.txt"
 # filename.parent.mkdir(exist_ok=True)
 
