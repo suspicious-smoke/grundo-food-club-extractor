@@ -6,10 +6,44 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import re
 import subprocess
-
+import gspread
 
 URL = "https://grundos.cafe/games/foodclub/bet/"
 WINNER_BASE_URL = "https://grundos.cafe/games/foodclub/previous_round/?id="
+
+
+def duplicate_and_paste(spreadsheet, source_tab, new_tab, values, paste_cell="B1"):
+    # Find the original tab
+    source = spreadsheet.worksheet(source_tab)
+
+    # Prevent duplicate tab names
+    if new_tab in [ws.title for ws in spreadsheet.worksheets()]:
+        raise ValueError(f"Tab '{new_tab}' already exists.")
+
+    # Duplicate the original tab and rename it
+    new_sheet = spreadsheet.duplicate_sheet(
+        source_sheet_id=source.id,
+        new_sheet_name=new_tab,
+        insert_sheet_index=source.index+1
+    )
+
+    paste_values(spreadsheet, new_tab, values, paste_cell)
+    return new_sheet
+
+
+def paste_values(spreadsheet, source_tab, values, paste_cell="B1"):
+    if not (source_tab in [ws.title for ws in spreadsheet.worksheets()]):
+            raise ValueError(f"Tab '{source_tab}' doesn't exists.")
+    source = spreadsheet.worksheet(source_tab)
+    # Paste the values into the new tab
+    if values:
+        source.update(
+            values=values,
+            range_name=paste_cell,
+            value_input_option="RAW"
+        )
+        
+
 
 # --------------------------------------------------
 # Get logged-in Firefox cookies
@@ -58,7 +92,9 @@ round_number = int(match.group(1))
 # --------------------------------------------------
 # Find all five dropdowns
 # --------------------------------------------------
-pirates = []
+pirates_list = []
+pirates_list.append([f"Round {round_number}",""])
+pirates_list.append(["Pirate","Odds"])
 
 for i in range(1, 6):
 
@@ -99,44 +135,58 @@ for i in range(1, 6):
             text
         ).strip()
 
-        pirates.append(
-            f"{name} ({odds}:1)"
+        pirates_list.append(
+            [name,f"{odds}:1"]
         )
 
-lines = []
-
-lines.append(f"Round   {round_number}")
-lines.append("Pirate\tOdds")
-
-for pirate in pirates:
-    name, odds = pirate.rsplit(" (", 1)
-    odds = odds.rstrip(")")
-    lines.append(f"{name}\t{odds}")
+# for pirate in pirates:
+#     name, odds = pirate.rsplit(" (", 1)
+#     odds = odds.rstrip(")")
+#     lines.append(f"{name}\t{odds}")
 
 # --------------------------------------------------
 # Download the previous round winners
 # --------------------------------------------------
-lines.append(f"Winners for {round_number-1}:")
+winners_list=[]
+winner_round=round_number-1
 for i in range(1, 6):
     response = session.get(f"{WINNER_BASE_URL}{i}")
     response.raise_for_status()
     soup = BeautifulSoup(response.text, "html.parser")
     winner_pirate = soup.select_one("#fc_table p.bold.nomargin").get_text(strip=True)
-    lines.append(winner_pirate)
+    winners_list.append([winner_pirate])
+
+# --------------------------------------------------
+# Google sheet stuff
+# --------------------------------------------------
+gc = gspread.service_account(
+    filename="../credentials.json"
+)
+
+spreadsheet = gc.open("GC food club bets")
+
+new_sheet = duplicate_and_paste(
+    spreadsheet=spreadsheet,
+    source_tab="blank",
+    new_tab=f"{round_number}",
+    values=pirates_list
+)
+
+# put winners in previous sheet
+paste_values(spreadsheet=spreadsheet,source_tab=f"{round_number-1}",values=winners_list,paste_cell="P19")
 
 
 
-output = "\n".join(lines)
 # --------------------------------------------------
 # Save as a text file
 # --------------------------------------------------
-filename = Path("bet_files") / f"food_club_bets.txt"
-filename.parent.mkdir(exist_ok=True)
+# filename = Path("bet_files") / f"food_club_bets.txt"
+# filename.parent.mkdir(exist_ok=True)
 
-with open(filename, "w", encoding="utf-8") as f:
-    f.write(output)
+# with open(filename, "w", encoding="utf-8") as f:
+#     f.write(output)
 
-print(f"Saved: {filename}")
-print()
-print(output)
-subprocess.Popen(["notepad.exe", str(filename.resolve())])
+# print(f"Saved: {filename}")
+# print()
+# print(output)
+# subprocess.Popen(["notepad.exe", str(filename.resolve())])
