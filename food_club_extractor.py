@@ -60,7 +60,6 @@ except Exception as e:
 session = requests.Session()
 session.cookies.update(cookies)
 
-
 # --------------------------------------------------
 # Download the Food Club page
 # --------------------------------------------------
@@ -68,7 +67,6 @@ response = session.get(URL)
 response.raise_for_status()
 
 soup = BeautifulSoup(response.text, "html.parser")
-
 
 # --------------------------------------------------
 # Find the current round
@@ -95,7 +93,6 @@ if not match:
     )
 
 round_number = int(match.group(1))
-
 
 # --------------------------------------------------
 # Find all five dropdowns
@@ -176,9 +173,6 @@ new_sheet = duplicate_and_paste(
 
 # put winners in previous sheet
 paste_values(spreadsheet=spreadsheet,source_tab=f"{round_number-1}",values=winners_list,paste_cell="P19")
-
-
-
 
 # --------------------------------------------------
 # send discord message to my server
