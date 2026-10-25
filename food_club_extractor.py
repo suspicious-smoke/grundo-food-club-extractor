@@ -48,12 +48,27 @@ def paste_values(spreadsheet, source_tab, values, paste_cell="B1"):
 # --------------------------------------------------
 # Get logged-in Firefox cookies
 # --------------------------------------------------
+# Do this for non-debian
+# try:
+#     cookies = browser_cookie3.firefox()
+# except Exception as e:
+#     raise RuntimeError(
+#         "Could not read Firefox cookies.\n"
+#         "Try completely closing Firefox before running this script."
+#     ) from e
+
+
+cookie_db = (
+    Path.home()
+    / ".config/mozilla/firefox/ixbc9d1l.default-esr/cookies.sqlite"
+)
 try:
-    cookies = browser_cookie3.firefox()
+    cookies = browser_cookie3.firefox(cookie_file=str(cookie_db))
 except Exception as e:
     raise RuntimeError(
-        "Could not read Firefox cookies.\n"
-        "Try completely closing Firefox before running this script."
+        f"Could not read Firefox cookies from {cookie_db}.\n"
+        "Try completely closing Firefox before running this script.\n"
+        f"Original error: {e}"
     ) from e
 
 
